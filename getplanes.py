@@ -361,12 +361,12 @@ def main():
 
 def launch_agent(aircraft_type: str, max_airframes: int) -> None:
     # Create a new web driver
-    driver = BrowserAgent()
-    driver.login_workflow()
-    purchases = 0
-    while purchases < max_airframes:
-        start_time = time.time()
-        try:
+    try:
+        driver = BrowserAgent()
+        driver.login_workflow()
+        purchases = 0
+        while purchases < max_airframes:
+            start_time = time.time()
             driver.goto_leases()
             tables = driver.get_lease_page(aircraft_type)
             if not type(tables) == pd.DataFrame:
@@ -375,9 +375,9 @@ def launch_agent(aircraft_type: str, max_airframes: int) -> None:
                 driver.purchase_aircraft(-1, 1)
                 purchases += 1
             print(f"INFO: Time to purchase: {time.time() - start_time}")
-        except Exception as e:
-            print(f"WARN: Purchasing airframe {aircraft_type} encountered error {e}")
-            continue
+    except Exception as e:
+        print(f"WARN: Purchasing airframe {aircraft_type} encountered error {e}")
+        continue
 
 
 def saturation_attack() -> None:
