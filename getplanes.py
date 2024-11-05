@@ -369,7 +369,7 @@ def launch_agent(aircraft_type: str, max_airframes: int) -> None:
         try:
             driver.goto_leases()
             tables = driver.get_lease_page(aircraft_type)
-            if not tables:
+            if not type(tables) == pd.DataFrame:
                 continue
             else:
                 driver.purchase_aircraft(-1, 1)
