@@ -390,7 +390,7 @@ def saturation_attack() -> None:
 def parseargs() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "mode",
+        "--mode",
         type=str,
         help="Switch bot between monitor and saturation modes.",
     )
