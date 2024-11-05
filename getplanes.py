@@ -388,7 +388,9 @@ def saturation_attack() -> None:
     with ThreadPoolExecutor(max_workers=10) as exe:
         # For every airframe type, create a new user agent.
         for _, row in desired_leases.iterrows():
-            exe.submit(launch_agent, row["Aircraft Type"], row["Maximum Airframes"])
+            exe.submit(
+                launch_agent, row["Aircraft Type"], int(row["Maximum Airframes"])
+            )
 
 
 def parseargs() -> argparse.Namespace:
