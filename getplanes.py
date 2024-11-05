@@ -1,11 +1,13 @@
+import argparse
 import collections
 import datetime
 import itertools
 import os
 import pickle
 import time
+from concurrent.futures import ThreadPoolExecutor
 from io import StringIO
-from typing import List
+from typing import List, Union
 
 import gspread
 import pandas as pd
@@ -127,6 +129,33 @@ class BrowserAgent:
         self._trigger_popup()
         self.goto_leases()
 
+    # Get just the first page of leases for a given airframe (for speed and profit)
+    def get_lease_page(self, airframe: str) -> Union[pd.DataFrame, None]:
+        # Select the desired airframe
+        selection_list = Select(
+            self.driver.find_element(By.ID, "_ctl0_MainContent_ddlBudgetLease")
+        )
+        # Returns a list of (option_id, name) pairs for every available lease type
+        available_airframes = {
+            x.text: x.get_attribute("value") for x in selection_list.options
+        }
+        if airframe not in available_airframes.keys():
+            print(f"DEBUG: Airframe of type {airframe} not currently found...")
+            return None
+        selection_list.select_by_value(available_airframes[airframe])  # type: ignore
+        # Filter by selection
+        apply_filter = self.driver.find_element(
+            By.ID, "_ctl0_MainContent_btnApplyFilter"
+        ).click()
+        # Delay until the page updates
+        self.wait.until(
+            EC.visibility_of_element_located(
+                (By.ID, "_ctl0_MainContent_dtgAvailableLease")
+            )
+        )
+        # Pass the DOM to bs4, extract table.
+        return LeaseStrainer(self.driver.page_source).get_table()
+
     # Get all available leases for a given airframe
     # If there are no available leases, return empty list
     def get_leases(self, airframe: str) -> List[pd.DataFrame]:
@@ -199,7 +228,9 @@ class BrowserAgent:
     # Move the webdriver to the leasing page.
     def purchase_aircraft(self, pagenum: int, rownum: int) -> None:
         # First, navigate to the correct page.
-        self._goto_page(pagenum)
+        # WARN: If pagenum is a negative number, assumes we are already on the right page.
+        if pagenum >= 0:
+            self._goto_page(pagenum)
         # Get the corresponding row from the table
         table = self.driver.find_element(By.TAG_NAME, "table")
         # row = table.find_element(By.XPATH, f"//tr[{rownum}]")
@@ -328,5 +359,50 @@ def main():
             continue
 
 
+def launch_agent(aircraft_type: str) -> None:
+    # Create a new web driver
+    driver = BrowserAgent()
+    driver.login_workflow()
+    while True:
+        try:
+            driver.goto_leases()
+            tables = driver.get_lease_page(aircraft_type)
+            if not tables:
+                continue
+            else:
+                driver.purchase_aircraft(-1, 1)
+        except Exception as e:
+            print(f"WARN: Purchasing airframe {aircraft_type} encountered error {e}")
+            continue
+
+
+def saturation_attack() -> None:
+    # Load the spreadsheet
+    gsheets = SheetsHandler()
+    desired_leases = gsheets.get_spreadsheet()
+    # open multithreading context manager
+    with ThreadPoolExecutor(max_workers=10) as exe:
+        # For every airframe type, create a new user agent.
+        for _, row in desired_leases.iterrows():
+            exe.submit(launch_agent, row["Aircraft Type"])
+
+
+def parseargs() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "mode",
+        type=str,
+        required=True,
+        help="Switch bot between monitor and saturation modes.",
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    main()
+    args = parseargs()
+    # Inlcude a switch for special batch run purchase mode
+    if args.mode == "saturation":
+        saturation_attack()
+
+    else:
+        main()
