@@ -359,11 +359,13 @@ def main():
             continue
 
 
-def launch_agent(aircraft_type: str) -> None:
+def launch_agent(aircraft_type: str, max_airframes: int) -> None:
     # Create a new web driver
     driver = BrowserAgent()
     driver.login_workflow()
-    while True:
+    purchases = 0
+    while purchases < max_airframes:
+        start_time = time.time()
         try:
             driver.goto_leases()
             tables = driver.get_lease_page(aircraft_type)
@@ -371,6 +373,8 @@ def launch_agent(aircraft_type: str) -> None:
                 continue
             else:
                 driver.purchase_aircraft(-1, 1)
+                purchases += 1
+            print(f"INFO: Time to purchase: {time.time() - start_time}")
         except Exception as e:
             print(f"WARN: Purchasing airframe {aircraft_type} encountered error {e}")
             continue
@@ -384,7 +388,7 @@ def saturation_attack() -> None:
     with ThreadPoolExecutor(max_workers=10) as exe:
         # For every airframe type, create a new user agent.
         for _, row in desired_leases.iterrows():
-            exe.submit(launch_agent, row["Aircraft Type"])
+            exe.submit(launch_agent, row["Aircraft Type"], row["Maximum Airframes"])
 
 
 def parseargs() -> argparse.Namespace:
