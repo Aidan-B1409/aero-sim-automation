@@ -392,7 +392,6 @@ def parseargs() -> argparse.Namespace:
     parser.add_argument(
         "mode",
         type=str,
-        required=True,
         help="Switch bot between monitor and saturation modes.",
     )
     return parser.parse_args()
