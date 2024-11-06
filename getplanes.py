@@ -238,7 +238,9 @@ class BrowserAgent:
         table = self.driver.find_element(By.TAG_NAME, "table")
         # row = table.find_element(By.XPATH, f"//tr[{rownum}]")
         # Get the link from this row
-        link = table.find_elements(By.TAG_NAME, "a")[rownum]
+        print(rownum)
+        links = table.find_elements(By.TAG_NAME, "a")
+        link = links[rownum]
         # link = row.find_element(By.TAG_NAME, "a")
         link.click()
         # Wait until the page updates
