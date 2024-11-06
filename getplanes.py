@@ -240,6 +240,7 @@ class BrowserAgent:
         # Get the link from this row
         print(rownum)
         links = table.find_elements(By.TAG_NAME, "a")
+        rownum = rownum - 1 if rownum > 0 else 0
         print(links)
         link = links[rownum - 1]
         # link = row.find_element(By.TAG_NAME, "a")
@@ -260,8 +261,7 @@ class BrowserAgent:
         self.wait.until(
             EC.visibility_of_element_located((By.ID, "_ctl0_MainContent_btnAccept"))
         )
-        # self.driver.find_element(By.ID, "_ctl0_MainContent_btnAccept").click()
-        self.goto_leases()
+        self.driver.find_element(By.ID, "_ctl0_MainContent_btnAccept").click()
 
 
 class SheetsHandler:
