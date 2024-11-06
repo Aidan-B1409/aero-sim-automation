@@ -240,6 +240,7 @@ class BrowserAgent:
         # Get the link from this row
         print(rownum)
         links = table.find_elements(By.TAG_NAME, "a")
+        print(links)
         link = links[rownum - 1]
         # link = row.find_element(By.TAG_NAME, "a")
         link.click()
