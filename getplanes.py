@@ -257,7 +257,8 @@ class BrowserAgent:
         self.wait.until(
             EC.visibility_of_element_located((By.ID, "_ctl0_MainContent_btnAccept"))
         )
-        self.driver.find_element(By.ID, "_ctl0_MainContent_btnAccept").click()
+        # self.driver.find_element(By.ID, "_ctl0_MainContent_btnAccept").click()
+        self.goto_leases()
 
 
 class SheetsHandler:
