@@ -216,7 +216,10 @@ class BrowserAgent:
     def _goto_page(self, pagenum: int) -> None:
         navbar = self._get_navbar()
         # link = navbar.find_element(By.XPATH, f"//td[{pagenum}]")
-        link = navbar.find_elements(By.TAG_NAME, "a")[pagenum - 1]
+        links = navbar.find_elements(By.TAG_NAME, "a")
+        if not links:
+            return None
+        link = links[pagenum - 1]
         link.click()
         # wait until page updates
         self.wait.until(
