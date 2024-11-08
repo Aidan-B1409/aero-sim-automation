@@ -216,7 +216,10 @@ class BrowserAgent:
     def _goto_page(self, pagenum: int) -> None:
         navbar = self._get_navbar()
         # link = navbar.find_element(By.XPATH, f"//td[{pagenum}]")
-        links = navbar.find_elements(By.TAG_NAME, "a")
+        try:
+            links = navbar.find_elements(By.TAG_NAME, "a")
+        except Exception as e:
+            print("DEBUG: Not moving pages, likely only one page.")
         if not links:
             return None
         link = links[pagenum - 1]
