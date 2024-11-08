@@ -44,7 +44,7 @@ class BrowserAgent:
         # We pre-initialize a Wait object for our webdriver
         self.wait = WebDriverWait(self.driver, 10)
         self.username = "mpp"
-        self.password = "aerluxe"
+        self.password = "MazevoCrew"
 
     def _get_webdriver(self) -> webdriver.Chrome:
         # Define Chrome options
