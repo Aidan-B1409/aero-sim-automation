@@ -246,6 +246,8 @@ class BrowserAgent:
         links = table.find_elements(By.TAG_NAME, "a")
         rownum = rownum - 1 if rownum > 0 else 0
         print(links)
+        if not links:
+            return None
         link = links[rownum]
         # link = row.find_element(By.TAG_NAME, "a")
         link.click()
