@@ -220,6 +220,7 @@ class BrowserAgent:
             links = navbar.find_elements(By.TAG_NAME, "a")
         except Exception as e:
             print("DEBUG: Not moving pages, likely only one page.")
+            return None
         if not links:
             return None
         link = links[pagenum - 1]
