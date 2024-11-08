@@ -315,58 +315,58 @@ def main():
         airframe_count = collections.defaultdict(int)
     # TODO: handle selenium crashes
     while True:
-        # try:
-        # Get a new Chrome Driver instance
-        driver = BrowserAgent()
-        # Navigate to the used leases page
-        driver.login_workflow()
-        # Create new timer (refresh user agent every 15 minutes)
-        refresh_time = datetime.datetime.now() + datetime.timedelta(minutes=15)
-        while datetime.datetime.now() < refresh_time:
-            # Get the desired leases spreadsheet
-            gsheets = SheetsHandler()
-            desired_leases = gsheets.get_spreadsheet()
-            # Create new timer (refresh spreadsheet every 3 minutes)
-            sheets_refresh_time = datetime.datetime.now() + datetime.timedelta(
-                minutes=3
-            )
-            while datetime.datetime.now() < sheets_refresh_time:
-                for i, row in desired_leases.iterrows():
-                    # Every time we load a new aircraft, we should refresh the leases page
-                    driver.goto_leases()
-                    # Get the available leases for this aircraft type
-                    tables = driver.get_leases(row["Aircraft Type"])
-                    if not tables:
-                        continue
-                    df = build_table_index(tables)
-                    while airframe_count[row["Aircraft Type"]] < int(
-                        row["Maximum Airframes"]
-                    ):
-                        # Filter out any values above maximum flight hours
-                        df = df[df["Hours flown"] < int(row["Maximum Hours"])]
-                        # If there are no remaining valid aircraft, exit
-                        if df.shape[0] <= 0:
-                            break
-                        # Sort dataframe by flight hours
-                        df = df.sort_values("Hours flown")
-                        # For all airframes below the maximum flight hours, purchase the lease
-                        for j, lease in df.iterrows():
-                            driver.purchase_aircraft(j[0] + 1, j[1] + 1)
+        try:
+            # Get a new Chrome Driver instance
+            driver = BrowserAgent()
+            # Navigate to the used leases page
+            driver.login_workflow()
+            # Create new timer (refresh user agent every 15 minutes)
+            refresh_time = datetime.datetime.now() + datetime.timedelta(minutes=15)
+            while datetime.datetime.now() < refresh_time:
+                # Get the desired leases spreadsheet
+                gsheets = SheetsHandler()
+                desired_leases = gsheets.get_spreadsheet()
+                # Create new timer (refresh spreadsheet every 3 minutes)
+                sheets_refresh_time = datetime.datetime.now() + datetime.timedelta(
+                    minutes=3
+                )
+                while datetime.datetime.now() < sheets_refresh_time:
+                    for i, row in desired_leases.iterrows():
+                        # Every time we load a new aircraft, we should refresh the leases page
+                        driver.goto_leases()
+                        # Get the available leases for this aircraft type
+                        tables = driver.get_leases(row["Aircraft Type"])
+                        if not tables:
+                            continue
+                        df = build_table_index(tables)
+                        while airframe_count[row["Aircraft Type"]] < int(
+                            row["Maximum Airframes"]
+                        ):
+                            # Filter out any values above maximum flight hours
+                            df = df[df["Hours flown"] < int(row["Maximum Hours"])]
+                            # If there are no remaining valid aircraft, exit
+                            if df.shape[0] <= 0:
+                                break
+                            # Sort dataframe by flight hours
+                            df = df.sort_values("Hours flown")
+                            # For all airframes below the maximum flight hours, purchase the lease
+                            for j, lease in df.iterrows():
+                                driver.purchase_aircraft(j[0] + 1, j[1] + 1)
 
-                            # Every time we purchase an aircraft, update the airframe count and store it to disk
-                            # This is i/o intensive and inefficient, but we are okay with slowing down this thread
-                            airframe_count[row["Aircraft Type"]] += 1
-                            with open("filename.pickle", "wb") as handle:
-                                pickle.dump(
-                                    airframe_count,
-                                    handle,
-                                    protocol=pickle.HIGHEST_PROTOCOL,
-                                )
-                time.sleep(2)
+                                # Every time we purchase an aircraft, update the airframe count and store it to disk
+                                # This is i/o intensive and inefficient, but we are okay with slowing down this thread
+                                airframe_count[row["Aircraft Type"]] += 1
+                                with open("filename.pickle", "wb") as handle:
+                                    pickle.dump(
+                                        airframe_count,
+                                        handle,
+                                        protocol=pickle.HIGHEST_PROTOCOL,
+                                    )
+                    time.sleep(2)
         # In the event selenium crashes, spin up a new user agent and try again
-        # except Exception as e:
-        #     print(f"ERROR: {e}")
-        #     continue
+        except Exception as e:
+            print(f"ERROR: {e}")
+            continue
 
 
 def launch_agent(aircraft_type: str, max_airframes: int) -> None:
